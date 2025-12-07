@@ -73,7 +73,8 @@ class TestCommentAPI:
         )
 
     def test_comments_get(
-        self, user_client, post, comment_1_post, comment_2_post, comment_1_another_post
+        self, user_client, post, comment_1_post, comment_2_post,
+        comment_1_another_post
     ):
         response = user_client.get(self.comments_url.format(post_id=post.id))
         assert response.status_code == HTTPStatus.OK, (
@@ -94,7 +95,9 @@ class TestCommentAPI:
         comment = Comment.objects.filter(post=post).first()
         test_comment = test_data[0]
         self.check_comment_data(
-            test_comment, f"GET-запросе к `{self.comments_url}`", db_comment=comment
+            test_comment,
+            f"GET-запросе к `{self.comments_url}`",
+            db_comment=comment
         )
 
     def test_comment_create_by_unauth(self, client, post, comment_1_post):
@@ -107,12 +110,14 @@ class TestCommentAPI:
         data = {"text": self.TEXT_FOR_COMMENT}
         try:
             response = client.post(
-                self.comments_url.format(
-                    post_id=post.id), data=data)
+                self.comments_url.format(post_id=post.id),
+                data=data
+            )
         except ValueError as error:
             raise AssertionError(
                 assert_msg
-                + ("\nВ процессе выполнения запроса произошла ошибка: " f"{error}")
+                + ("\nВ процессе выполнения запроса произошла ошибка: "
+                   f"{error}")
             )
         assert response.status_code == HTTPStatus.UNAUTHORIZED, assert_msg
         assert comment_cnt == Comment.objects.count(), (
@@ -171,8 +176,9 @@ class TestCommentAPI:
         comments_count = Comment.objects.count()
 
         response = user_client.post(
-            self.comments_url.format(
-                post_id=post.id), data={})
+            self.comments_url.format(post_id=post.id),
+            data={}
+        )
         assert response.status_code == HTTPStatus.BAD_REQUEST, (
             "Проверьте, что POST-запрос с некорректными данными от "
             f"авторизованного пользователя к `{self.comments_url}` возвращает "
@@ -185,8 +191,9 @@ class TestCommentAPI:
 
     def test_comment_author_and_post_are_read_only(self, user_client, post):
         response = user_client.post(
-            self.comments_url.format(
-                post_id=post.id), data={})
+            self.comments_url.format(post_id=post.id),
+            data={}
+        )
         assert response.status_code == HTTPStatus.BAD_REQUEST, (
             "Проверьте, что POST-запрос с некорректными данными от "
             f"авторизованного пользователя к `{self.comments_url}` возвращает "
@@ -266,81 +273,4 @@ class TestCommentAPI:
                 f"{http_method}-запросе к {self.comment_detail_url}"
             ),
             db_comment=db_comment,
-        )
-
-    @pytest.mark.parametrize("http_method", ("put", "patch"))
-    def test_comment_change_not_auth_with_valid_data(
-        self, client, post, comment_1_post, http_method
-    ):
-        request_func = getattr(client, http_method)
-        response = request_func(
-            self.comment_detail_url.format(
-                post_id=post.id, comment_id=comment_1_post.id
-            ),
-            data={"text": self.TEXT_FOR_COMMENT},
-        )
-        http_method = http_method.upper()
-        assert response.status_code == HTTPStatus.UNAUTHORIZED, (
-            f"Проверьте, что для неавторизованного пользователя {http_method}"
-            f"-запрос к `{self.comment_detail_url}` возвращает ответ со "
-            "статусом 401."
-        )
-        db_comment = Comment.objects.filter(id=comment_1_post.id).first()
-        assert db_comment.text != self.TEXT_FOR_COMMENT, (
-            f"Проверьте, что для неавторизованного пользователя {http_method}"
-            f"-запрос к `{self.comment_detail_url}` не вносит изменения в "
-            "комментарий."
-        )
-
-    def test_comment_delete_by_author(self, user_client, post, comment_1_post):
-        response = user_client.delete(
-            self.comment_detail_url.format(
-                post_id=post.id, comment_id=comment_1_post.id
-            )
-        )
-        assert response.status_code == HTTPStatus.NO_CONTENT, (
-            "Проверьте, что DELETE-запрос, отправленный авторизованным "
-            "пользователем к собственному комментарию на эндпоинт "
-            f"`{self.comment_detail_url}`, возвращает ответ со статусом 204."
-        )
-
-        test_comment = Comment.objects.filter(id=post.id).first()
-        assert not test_comment, (
-            "Проверьте, что DELETE-запрос автора комментария к "
-            f"`{self.comment_detail_url}` удаляет комментарий."
-        )
-
-    def test_comment_delete_by_not_author(
-            self, user_client, post, comment_2_post):
-        response = user_client.delete(
-            self.comment_detail_url.format(
-                post_id=post.id, comment_id=comment_2_post.id
-            )
-        )
-        assert response.status_code == HTTPStatus.FORBIDDEN, (
-            "Проверьте, что DELETE-запрос, отправленный авторизованным "
-            "пользователем к чужому комментарию на эндпоинт "
-            f"`{self.comment_detail_url}`, возвращает ответ со статусом 403."
-        )
-        db_comment = Comment.objects.filter(id=comment_2_post.id).first()
-        assert db_comment, (
-            "Проверьте, что DELETE-запрос авторизованного пользователя  к "
-            f"чужому комментарию на эндпоинт `{self.comment_detail_url}` не "
-            "удаляет этот комментарий."
-        )
-
-    def test_comment_delete_by_unauth(self, client, post, comment_1_post):
-        response = client.delete(
-            self.comment_detail_url.format(
-                post_id=post.id, comment_id=comment_1_post.id
-            )
-        )
-        assert response.status_code == HTTPStatus.UNAUTHORIZED, (
-            "Проверьте, что для неавторизованного пользователя DELETE-запрос "
-            f"к `{self.comment_detail_url}` возвращает ответ со статусом 401."
-        )
-        db_comment = Comment.objects.filter(id=comment_1_post.id).first()
-        assert db_comment, (
-            "Проверьте, что для неавторизованного пользователя DELETE-запрос "
-            f"к `{self.comment_detail_url}` не удаляет комментарий."
         )

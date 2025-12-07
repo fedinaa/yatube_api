@@ -47,8 +47,12 @@ class TestJWT:
             )
 
         invalid_data = (
-            {"username": "invalid_username_not_exists", "password": "invalid pwd"},
-            {"username": user.username, "password": "invalid pwd"},
+            {
+                "username": "invalid_username_not_exists",
+                "password": "invalid pwd"},
+            {
+                "username": user.username,
+                "password": "invalid pwd"},
         )
         field = "detail"
         for data in invalid_data:

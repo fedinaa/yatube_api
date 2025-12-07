@@ -209,7 +209,7 @@ class TestPostAPI:
         except ValueError as error:
             raise AssertionError(
                 assert_msg
-                + ("\nВ процессе выполнения запроса произошла ошибка: " f"{error}")
+                + ("\nПроизошла ошибка: " f"{error}")
             )
         assert response.status_code == HTTPStatus.UNAUTHORIZED, assert_msg
 
@@ -287,7 +287,8 @@ class TestPostAPI:
     ):
         request_func = getattr(user_client, http_method)
         response = request_func(
-            self.post_detail_url.format(post_id=another_post.id), data=self.VALID_DATA
+            self.post_detail_url.format(post_id=another_post.id),
+            data=self.VALID_DATA
         )
         http_method = http_method.upper()
         assert response.status_code == HTTPStatus.FORBIDDEN, (
@@ -345,7 +346,8 @@ class TestPostAPI:
 
         test_post = Post.objects.filter(id=another_post.id).first()
         assert test_post, (
-            "Проверьте, что авторизованный пользователь не может удалить " "чужой пост."
+            "Проверьте, что авторизованный пользователь не может удалить "
+            "чужой пост."
         )
 
     def test_post_unauth_delete_current(self, client, post):
