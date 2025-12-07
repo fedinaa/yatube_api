@@ -14,7 +14,8 @@ def group_2():
 
 @pytest.fixture
 def post(user, group_1):
-    return Post.objects.create(text="Тестовый пост 1", author=user, group=group_1)
+    return Post.objects.create(
+        text="Тестовый пост 1", author=user, group=group_1)
 
 
 @pytest.fixture
@@ -31,7 +32,8 @@ def comment_1_post(post, user):
 
 @pytest.fixture
 def comment_2_post(post, another_user):
-    return Comment.objects.create(author=another_user, post=post, text="Коммент 2")
+    return Comment.objects.create(
+        author=another_user, post=post, text="Коммент 2")
 
 
 @pytest.fixture
@@ -43,7 +45,8 @@ def another_post(another_user, group_2):
 
 @pytest.fixture
 def comment_1_another_post(another_post, user):
-    return Comment.objects.create(author=user, post=another_post, text="Коммент 12")
+    return Comment.objects.create(
+        author=user, post=another_post, text="Коммент 12")
 
 
 @pytest.fixture

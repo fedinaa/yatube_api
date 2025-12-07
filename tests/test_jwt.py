@@ -116,7 +116,8 @@ class TestJWT:
         response = client.post(self.url_create, data=valid_data)
         response_data = response.json()
 
-        for token in (response_data.get("access"), response_data.get("refresh")):
+        for token in (response_data.get("access"),
+                      response_data.get("refresh")):
             response = client.post(url, data={"token": token})
             assert response.status_code == HTTPStatus.OK, (
                 "Убедитесь, что POST-запрос с корректными данными, "

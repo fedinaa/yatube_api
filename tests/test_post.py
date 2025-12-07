@@ -12,7 +12,8 @@ class TestPostAPI:
     post_list_url = "/api/v1/posts/"
     post_detail_url = "/api/v1/posts/{post_id}/"
 
-    def check_post_data(self, response_data, request_method_and_url, db_post=None):
+    def check_post_data(self, response_data,
+                        request_method_and_url, db_post=None):
         expected_fields = ("id", "text", "author", "pub_date")
         for field in expected_fields:
             assert field in response_data, (
@@ -74,7 +75,10 @@ class TestPostAPI:
 
         db_post = Post.objects.first()
         test_post = test_data[0]
-        self.check_post_data(test_post, f"GET-запрос к `{self.post_list_url}`", db_post)
+        self.check_post_data(
+            test_post,
+            f"GET-запрос к `{self.post_list_url}`",
+            db_post)
 
     @pytest.mark.usefixtures("post", "post_2", "another_post")
     def test_posts_get_paginated(self, user_client):
@@ -108,7 +112,7 @@ class TestPostAPI:
             f"`{self.post_list_url}`, возвращает корректное количество статей."
         )
 
-        db_post = Post.objects.all()[offset : offset + limit][0]
+        db_post = Post.objects.all()[offset: offset + limit][0]
         test_post = test_data.get("results")[0]
         self.check_post_data(
             response_data=test_post,
@@ -132,7 +136,8 @@ class TestPostAPI:
             f"отправленный к `{self.post_list_url}`, не создаёт новый пост."
         )
 
-    def test_post_create_auth_with_valid_data(self, user_client, user, group_1):
+    def test_post_create_auth_with_valid_data(
+            self, user_client, user, group_1):
         post_count = Post.objects.count()
 
         assert_msg = (
@@ -157,7 +162,8 @@ class TestPostAPI:
             f"`{self.post_list_url}` возвращает ответ, содержащий данные "
             "нового поста в виде словаря."
         )
-        self.check_post_data(test_data, f"POST-запрос к `{self.post_list_url}`")
+        self.check_post_data(
+            test_data, f"POST-запрос к `{self.post_list_url}`")
         assert test_data.get("text") == data["text"], (
             "Проверьте, что для авторизованного пользователя POST-запрос к "
             f"`{self.post_list_url}` возвращает ответ, содержащий текст "
@@ -213,7 +219,9 @@ class TestPostAPI:
         )
 
     def test_post_get_current(self, user_client, post):
-        response = user_client.get(self.post_detail_url.format(post_id=post.id))
+        response = user_client.get(
+            self.post_detail_url.format(
+                post_id=post.id))
 
         assert response.status_code == HTTPStatus.OK, (
             "Проверьте, что GET-запрос авторизованного пользователя к "
@@ -221,7 +229,10 @@ class TestPostAPI:
         )
 
         test_data = response.json()
-        self.check_post_data(test_data, f"GET-запрос к `{self.post_detail_url}`", post)
+        self.check_post_data(
+            test_data,
+            f"GET-запрос к `{self.post_detail_url}`",
+            post)
 
     @pytest.mark.parametrize("http_method", ("put", "patch"))
     def test_post_change_auth_with_valid_data(
@@ -251,7 +262,8 @@ class TestPostAPI:
         )
 
     @pytest.mark.parametrize("http_method", ("put", "patch"))
-    def test_post_change_not_auth_with_valid_data(self, client, post, http_method):
+    def test_post_change_not_auth_with_valid_data(
+            self, client, post, http_method):
         request_func = getattr(client, http_method)
         response = request_func(
             self.post_detail_url.format(post_id=post.id), data=self.VALID_DATA
@@ -292,7 +304,8 @@ class TestPostAPI:
         )
 
     @pytest.mark.parametrize("http_method", ("put", "patch"))
-    def test_post_patch_auth_with_invalid_data(self, user_client, post, http_method):
+    def test_post_patch_auth_with_invalid_data(
+            self, user_client, post, http_method):
         request_func = getattr(user_client, http_method)
         response = request_func(
             self.post_detail_url.format(post_id=post.id),
@@ -306,7 +319,9 @@ class TestPostAPI:
         )
 
     def test_post_delete_by_author(self, user_client, post):
-        response = user_client.delete(self.post_detail_url.format(post_id=post.id))
+        response = user_client.delete(
+            self.post_detail_url.format(
+                post_id=post.id))
         assert response.status_code == HTTPStatus.NO_CONTENT, (
             "Проверьте, что для автора поста DELETE-запрос к "
             f"`{self.post_detail_url}` возвращает ответ со статусом 204."
