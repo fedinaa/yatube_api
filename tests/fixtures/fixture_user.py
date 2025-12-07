@@ -1,4 +1,6 @@
 import pytest
+from rest_framework.test import APIClient
+from rest_framework.authtoken.models import Token
 
 
 @pytest.fixture
@@ -24,20 +26,30 @@ def another_user(django_user_model):
 
 @pytest.fixture
 def token(user):
-    from rest_framework_simplejwt.tokens import RefreshToken
-
-    refresh = RefreshToken.for_user(user)
-
-    return {
-        "refresh": str(refresh),
-        "access": str(refresh.access_token),
-    }
+    token, created = Token.objects.get_or_create(user=user)
+    return token
 
 
 @pytest.fixture
 def user_client(token):
-    from rest_framework.test import APIClient
-
     client = APIClient()
-    client.credentials(HTTP_AUTHORIZATION=f'Bearer {token["access"]}')
+    client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
     return client
+
+
+@pytest.fixture
+def token_2(user_2):
+    token, created = Token.objects.get_or_create(user=user_2)
+    return token
+
+
+@pytest.fixture
+def user_client_2(token_2):
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Token {token_2.key}')
+    return client
+
+
+@pytest.fixture
+def client():
+    return APIClient()
